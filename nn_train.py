@@ -19,8 +19,9 @@ def tanh(x):
 
 def load_data():
     """
-	create a series point labeled by 1 and 0 as the trainsets and testsets.
-	"""
+    create a series point labeled by 1 and 0 as the trainsets and testsets.
+    """
+
     train_X, train_Y = sklearn.datasets.make_circles(n_samples=300, noise=.05)
     test_X, test_Y = sklearn.datasets.make_circles(n_samples=300, noise=.05)
     plt.scatter(train_X[:, 0], train_X[:, 1], c=train_Y, s=40, cmap=plt.cm.Spectral);
@@ -32,9 +33,10 @@ def load_data():
 
 def initialize_parameters(layer_dims):
     """
-	initialize the paramaters of each layer, 
-	layer_dims: is a list that stores the size of each layer from the input layer to the output layer.
+    initialize the paramaters of each layer, 
+    layer_dims: is a list that stores the size of each layer from the input layer to the output layer.
     """
+
     Weight = {}
     bias = {}
     for d in range(1, len(layer_dims)):
@@ -45,8 +47,9 @@ def initialize_parameters(layer_dims):
 
 def forward_propagation(X, Weight, bias, activation):
     """
-	activation: Is a list of activation functions for each layer from the first hidden layer to the output layer
-	""" 
+    activation: Is a list of activation functions for each layer from the first hidden layer to the output layer
+    """ 
+
     assert(len(Weight) == len(bias))
     assert(len(Weight) == len(activation))
 
