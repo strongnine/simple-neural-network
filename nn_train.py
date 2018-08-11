@@ -3,6 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.io
 import sklearn.datasets
 
 def sigmoid(x):
@@ -31,6 +32,21 @@ def load_data():
     test_Y = test_Y.reshape((1, test_Y.shape[0]))
     return train_X, train_Y, test_X, test_Y
 
+def load_2D_dataset():
+    """
+    load another dataset.
+    """
+    
+    data = scipy.io.loadmat('data.mat')
+    train_X = data['X'].T
+    train_Y = data['y'].T
+    test_X = data['Xval'].T
+    test_Y = data['yval'].T
+
+    plt.scatter(train_X[0, :], train_X[1, :], c=np.squeeze(train_Y), s=40, cmap=plt.cm.Spectral);
+
+    return train_X, train_Y, test_X, test_Y
+
 def initialize_parameters(layer_dims):
     """
     initialize the paramaters of each layer, 
@@ -40,7 +56,7 @@ def initialize_parameters(layer_dims):
     Weight = {}
     bias = {}
     for d in range(1, len(layer_dims)):
-        Weight['W'+str(d)] = np.random.randn(layer_dims[d],layer_dims[d-1]) * 0.01
+        Weight['W'+str(d)] = np.random.randn(layer_dims[d],layer_dims[d-1]) / np.sqrt(layer_dims[d-1])
         bias['b'+str(d)] = np.zeros((layer_dims[d],1))
 
     return Weight, bias
@@ -74,12 +90,12 @@ def compute_cost(A, Y, Weight, lambd):
     cost += L2_term * lambd / (2 * m)
     return cost
 
-def backward_propagation(X, Y, Weight, bias, A, activation):
+def backward_propagation(X, Y, Weight, bias, A, activation, lambd):
     m = X.shape[1]
     gradients = {}
     L = len(Weight)
     gradients['dZ' + str(L)] = A['A' + str(L)] - Y
-    gradients['dW' + str(L)] = 1./m * np.dot(gradients['dZ' + str(L)], A['A' + str(L-1)].T)
+    gradients['dW' + str(L)] = 1./m * np.dot(gradients['dZ' + str(L)], A['A' + str(L-1)].T) + 1./m * lambd * Weight['W' + str(L)]
     gradients['db' + str(L)] = 1./m * np.sum(gradients['dZ' + str(L)], axis=1, keepdims = True)
     for l in range(L-1, 0, -1):
         gradients['dA' + str(l)] = np.dot(Weight['W'+str(l+1)].T, gradients['dZ'+str(l+1)])
@@ -89,7 +105,7 @@ def backward_propagation(X, Y, Weight, bias, A, activation):
             gradients['dZ'+str(l)] = np.multiply(gradients['dA'+str(l)], 1 - np.power(A['A'+str(1)], 2))
 
 
-        gradients['dW'+str(l)] = 1./m * np.dot(gradients['dZ'+str(l)], A['A'+str(l-1)].T)
+        gradients['dW'+str(l)] = 1./m * np.dot(gradients['dZ'+str(l)], A['A'+str(l-1)].T) + 1./m * lambd * Weight['W' + str(l)]
         gradients['db'+str(l)] = 1./m * np.sum(gradients['dZ'+str(l)], axis=1, keepdims=True)
 
     return gradients
@@ -108,7 +124,7 @@ def cls_predict(X, Weight, bias, activation):
 
     return prediction
 
-def nn_train(X,Y, Weight, bias, activation, lr=0.1, lambd=0.7, num_iterations=5000, print_cost=[True, 1000]):
+def nn_train(X,Y, Weight, bias, activation, lr=0.1, lambd=0.7, num_iterations=5000, print_cost=[True, 10000]):
     for i in range(num_iterations):
         A, Z = forward_propagation(X, Weight, bias, activation)
         cost = compute_cost(A, Y, Weight, lambd)
@@ -137,11 +153,12 @@ def plot(model, X, y):
 train_X, train_Y, test_X, test_Y = load_data()
 ## set the layer dims and activation for each layer.
 ## you can change the list to build your neural network.
-layer_dims = [2,5,20,1]
+layer_dims = [train_X.shape[0], 5, 20, 1]
 activation = ['relu', 'relu', 'sigmoid']
 Weight, bias = initialize_parameters(layer_dims)
+lambd = 0.7
 
-nn_train(train_X, train_Y, Weight, bias, activation, lr=0.1, lambd=0.7, num_iterations=30000)
+nn_train(train_X, train_Y, Weight, bias, activation, lr=0.3, lambd=lambd, num_iterations=30000)
 predictions = cls_predict(test_X, Weight, bias, activation)
 accuracy = np.mean((predictions[0,:] == test_Y[0,:]))
 print(accuracy)
