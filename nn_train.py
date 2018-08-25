@@ -128,7 +128,7 @@ def nn_train(X,Y, Weight, bias, activation, lr=0.1, lambd=0.7, num_iterations=50
     for i in range(num_iterations):
         A, Z = forward_propagation(X, Weight, bias, activation)
         cost = compute_cost(A, Y, Weight, lambd)
-        grads = backward_propagation(X, Y, Weight, bias, A, activation)
+        grads = backward_propagation(X, Y, Weight, bias, A, activation, lambd)
         Weight, b  = updata_parameters(Weight, bias, grads, lr)
 
         if print_cost[0] and i % print_cost[1] == 0:
